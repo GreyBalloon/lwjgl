@@ -14,5 +14,12 @@ public class ObjModel {
 		
 	}
 	
+	public ObjModel(ObjModel m )
+	{
+		this.vertices = new ArrayList<Vector3f>(m.vertices);
+		this.normals = new ArrayList<Vector3f>(m.normals);
+		this.faces = new ArrayList<Face>(m.faces);
+	}
+	
 	
 }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -22,20 +23,26 @@ public class GameRunner {
 	private FloatBuffer material;
 	
 	private ObjModel playerModel;
+	private ObjModel cubeModel;
 	
 	private Player player;
 	
 	public static Camera camera;
 	
+	private boolean key = false;
+	
 	public void init(MainDisplay main) {
-		entities = new ArrayList<Entity>();
+		//entities = new ArrayList<Entity>();
 		try {
 			playerModel = ObjLoader.loadObj("res/ball.obj");
+			cubeModel = ObjLoader.loadObj("res/cube.obj");
 		} catch (IOException e) {
 			e.printStackTrace();
 			Display.destroy();
 			System.exit(1);
 		}
+		
+		
 		
 		setUpCamera();
 		
@@ -64,6 +71,25 @@ public class GameRunner {
 	
 	public void update(MainDisplay main, int time) {
 		checkInput();
+		for (Entity e: entities)
+		{
+			e.yRot+=1;
+			e.xRot+=.2;
+		}
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_RETURN) && !key)
+		{
+			Box b = new Box(new ObjModel(cubeModel));
+			b.xPos = camera.x();
+			b.yPos = camera.y();
+			b.zPos = camera.z();
+			entities.add(b);
+			key = true;
+		}
+		else if (!Keyboard.isKeyDown(Keyboard.KEY_RETURN))
+		{
+			key = false;
+		}
 	}
 	
 	
@@ -74,17 +100,15 @@ public class GameRunner {
 		//material.flip();
 		//GL11.glMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE, material);
 		//GL11.glMaterial(GL11.GL_BACK, GL11.GL_DIFFUSE, material);
-
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		camera.applyTranslations();
 		
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 		
-		for (int i=0;i<entities.size();i++) {
-			Entity entity = (Entity) entities.get(i);
-			
-			entity.render();
+		for (Entity e : entities) {
+			e.render();
 		}
-		entities.add(new Player(playerModel));
+		
 		drawGUI(main);
 	}
 	

@@ -5,7 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 public class Entity {
 	private ObjModel model;
-	private float xPos, yPos, zPos, xRot, yRot, zRot;
+	public float xPos, yPos, zPos, xRot, yRot, zRot;
 	
 	public Entity(ObjModel model) {
 		this.model = model;
@@ -17,6 +17,29 @@ public class Entity {
 
 	
 	public void render() {
+		GL11.glPushMatrix();
+		
+		setRenderLoc();
+		renderOther();
+		renderModel();
+		
+		GL11.glPopMatrix();
+
+	}
+	
+	public void setRenderLoc() {
+		GL11.glTranslatef(xPos,yPos,zPos);
+		GL11.glRotatef(xRot,1,0,0);
+		GL11.glRotatef(yRot,0,1,0);
+		GL11.glRotatef(zRot,0,0,1);
+
+	}
+	
+	public void renderOther() {
+		
+	}
+	
+	public void renderModel() {
 		GL11.glBegin(GL11.GL_TRIANGLES);
 		
 		for (Face face : model.faces) {

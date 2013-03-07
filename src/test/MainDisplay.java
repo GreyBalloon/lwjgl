@@ -75,7 +75,7 @@ public class MainDisplay {
 			
 			Display.update();
 			
-			//Display.sync(60);
+			Display.sync(60);
 			
 			updateFPS();
 			
@@ -116,7 +116,7 @@ public class MainDisplay {
 	
 	public void init() {
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
-		GL11.glEnable(GL11.GL_CULL_FACE);
+		//GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glDepthFunc(GL11.GL_LEQUAL);
 		GL11.glShadeModel(GL11.GL_SMOOTH);
