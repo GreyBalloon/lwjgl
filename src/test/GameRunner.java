@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Random;
 
 
 
@@ -22,8 +23,21 @@ public class GameRunner {
 	
 	private FloatBuffer material;
 	
-	private ObjModel playerModel;
-	private ObjModel cubeModel;
+	public static ObjModel playerModel;
+	public static ObjModel cubeModel;
+	public static ObjModel bombModel;
+	public static ObjModel flagModel;
+	
+	public static int size = 20;
+	public static int mines = 60;
+	public static int opened = 0;
+	
+	
+	private int num = 1;
+	
+	public static ArrayList<ObjModel> numbers = new ArrayList<ObjModel>();
+	
+	public static Box grid[][] = new Box[size][size];
 	
 	private Player player;
 	
@@ -35,7 +49,13 @@ public class GameRunner {
 		//entities = new ArrayList<Entity>();
 		try {
 			playerModel = ObjLoader.loadObj("res/ball.obj");
-			cubeModel = ObjLoader.loadObj("res/cube.obj");
+			cubeModel = ObjLoader.loadObj("res/cube.obj",false);
+			flagModel = ObjLoader.loadObj("res/flag.obj");
+			bombModel = ObjLoader.loadObj("res/bomb.obj");
+			for (int i=1; i<=8;i++)
+			{
+				numbers.add(ObjLoader.loadObj("res/" + i + ".obj"));
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			Display.destroy();
@@ -46,6 +66,17 @@ public class GameRunner {
 		
 		setUpCamera();
 		
+		for (int i = 0; i<size; i++)
+		{
+			for(int j=0; j<size; j++)
+			{
+				Box b = new Box(new ObjModel(cubeModel), new ObjModel(flagModel));
+				b.xPos = 2*i;
+				b.zPos = 2*j;
+				grid[i][j] = b;
+				//entities.add(b);
+			}
+		}
 		
 	}
 	
@@ -72,21 +103,83 @@ public class GameRunner {
 	public void update(MainDisplay main, int time) {
 		checkInput();
 		for (Entity e: entities)
+		{		
+			e.update();
+		}
+		for (Box[] i : grid)
 		{
-			e.yRot+=1;
-			e.xRot+=.2;
+			for( Box j : i)
+			{
+				j.update();
+			}
 		}
 		
-		if (Keyboard.isKeyDown(Keyboard.KEY_RETURN) && !key)
+		if (Keyboard.isKeyDown(Keyboard.KEY_E) && !key)
 		{
-			Box b = new Box(new ObjModel(cubeModel));
+			for (Box[] i : grid)
+			{
+				double dis = 1;
+				for( Box b : i)
+				{
+					dis = Math.sqrt((Math.pow(Math.sqrt(Math.pow(camera.x()-b.xPos,2)+Math.pow(camera.y()-b.yPos,2)),2)+Math.sqrt(Math.pow(camera.x()-b.xPos,2)+Math.pow(camera.z()-b.zPos,2))));
+					
+					if (dis<1.2 && !b.getOpen())
+					{
+						if (!b.getFlagged())
+							b.flag();
+						else
+							b.unflag();
+						break;
+					}
+				}
+				if (dis<1.2)
+				{
+					break;
+				}
+			}
+			key = true;
+		}
+		else if (Keyboard.isKeyDown(Keyboard.KEY_Q))
+		{
+			
+			for (int i = 0; i<size; i++)
+			{
+				double dis = 1;
+				for(int j = 0; j<size; j++)
+				{
+					Box b = grid[i][j];
+					dis = Math.sqrt((Math.pow(Math.sqrt(Math.pow(camera.x()-b.xPos,2)+Math.pow(camera.y()-b.yPos,2)),2)+Math.sqrt(Math.pow(camera.x()-b.xPos,2)+Math.pow(camera.z()-b.zPos,2))));
+					
+					if (dis<1.2 && !b.getOpen() && !b.getFlagged())
+					{
+						
+						if (!b.init)
+						{
+							generateGrid(i,j);
+							System.out.println("Generated Grid");
+						}
+						b.open(1,j);
+						break;
+					}
+				}
+				if (dis<1.2)
+				{
+					break;
+				}
+			}
+			
+			
+			/*//Box b = new Box(new ObjModel(numbers.get(num-1)));
+			Box b = new Box(new ObjModel(cubeModel), new ObjModel(flagModel));
+			b.setType(num);
 			b.xPos = camera.x();
 			b.yPos = camera.y();
 			b.zPos = camera.z();
 			entities.add(b);
 			key = true;
+			*/
 		}
-		else if (!Keyboard.isKeyDown(Keyboard.KEY_RETURN))
+		else if (!Keyboard.isKeyDown(Keyboard.KEY_E))
 		{
 			key = false;
 		}
@@ -108,6 +201,13 @@ public class GameRunner {
 		for (Entity e : entities) {
 			e.render();
 		}
+		for (Box[] i : grid)
+		{
+			for( Box j : i)
+			{
+				j.render();
+			}
+		}
 		
 		drawGUI(main);
 	}
@@ -115,6 +215,48 @@ public class GameRunner {
 	public void drawGUI(MainDisplay main)
 	{
 		
+	}
+	
+	public void generateGrid(int fi, int fj) {
+		int placed = 0;
+		Random rand = new Random();
+		while (placed<=mines)
+		{
+			int i = rand.nextInt(size);
+			int j = rand.nextInt(size);
+			if (!grid[i][j].init && (i > fi+1 || i <fi-1) && (j > fj+1 || j < fj-1))
+			{
+				grid[i][j].init=true;
+				grid[i][j].setType(-1);
+				placed++;
+			}
+		}
+		for(int i=0; i<size; i++)
+		{
+			for(int j=0; j<size; j++)
+			{
+				if (grid[i][j].type!=-1)
+				{
+					int count = 0;
+					for(int l=-1; l<=1; l++)
+					{
+						for(int m=-1; m<=1; m++)
+						{
+							if ((l!=0 || m!=0) && i+l>=0 && j+m>=0 && i+l<size && j+m<size)
+							{
+								if (grid[i+l][j+m].type==-1)
+								{
+									count++;
+									
+								}
+							}
+						}
+					}
+					grid[i][j].setType(count);
+					grid[i][j].init=true;
+				}
+			}
+		}
 	}
 	
 	

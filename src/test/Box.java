@@ -7,17 +7,139 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
 public class Box extends Entity{
-	Vector3f color;
+	private Vector3f color;
+	private boolean open = false;
+	private boolean marked = false;
+	private ObjModel inside;
+	private ObjModel flag;
+	public boolean init = false;
 	
-	public Box(ObjModel model) {
+	public int type;
+	
+	public Box(ObjModel model, ObjModel flag) {
 		super(model);
+		this.flag = flag;
 		Random ran = new Random();
-		color = new Vector3f(ran.nextFloat(), ran.nextFloat(), ran.nextFloat());
+		//this.color = new Vector3f(ran.nextFloat(), ran.nextFloat(), ran.nextFloat());
 	}
 	
+	public void render() {
+		GL11.glPushMatrix();
+		
+		setRenderLoc(2);
+		renderColor(Colors.boxColor);
+		if (!(this.open && this.type==0))
+		{
+			renderModel(this.model,false);
+		}
+		
+		
+		GL11.glPopMatrix();
+		GL11.glPushMatrix();
+		setRenderLoc(1);	
+		
+		
+		if (this.open && this.type!=0) {
+			if (type==-1)
+			{
+				renderColor(Colors.bombColor);
+				GL11.glScalef(.5f, .5f, .5f);
+			}
+			else
+			{
+				renderColor(Colors.numberColors[type-1]);
+				GL11.glScalef(2, 2, 2);
+			}
+			renderModel(this.inside,true);
+		}
+		else if (this.open && this.type==0)
+		{
+			
+		}
+		else if (this.marked) {
+			renderColor(Colors.flagColor);
+			renderModel(this.flag,true);
+		}
+		else {
+			GL11.glScalef(.5f, .5f, .5f);
+			renderColor(Colors.innerBoxColor);
+			renderModel(this.model,false);
+		}
+		GL11.glPopMatrix();
+
+	}
 	
-	public void renderOther() {
+	public void setType(int type)
+	{
+		this.type = type;
+		this.init = true;
+		if (type>0)
+		{
+			this.inside = GameRunner.numbers.get(type-1);
+		}
+		else if (type == -1)
+		{
+			this.inside = GameRunner.bombModel;
+		}
+	}
+	
+	public void open(int i, int j)
+	{
+		if (!this.marked)
+		{
+			this.open = true;
+			GameRunner.opened++;
+			if (this.type == 0)
+			{
+				for(int l=-1; l<=1; l++)
+				{
+					for(int m=-1; m<=1; m++)
+					{
+						if ((l!=0 || m!=0) && i+l>=0 && j+m>=0 && i+l<GameRunner.size && j+m<GameRunner.size)
+						{
+							if(!GameRunner.grid[i+l][j+m].open)
+								GameRunner.grid[i+l][j+m].open(i+l,j+m);
+						}
+					}
+				}
+				
+			}
+		}
+	}
+	
+	public boolean getOpen() {
+		return this.open;
+	}
+	
+	public boolean getFlagged() {
+		return this.marked;
+	}
+	
+	public void renderColor(Vector3f color) {
 		GL11.glColor3f(color.x, color.y, color.z);
 	}
+	
 
+	public void update() {
+		this.yRot += 1;
+		if (type==-1 && !this.marked && this.open)
+			this.xRot +=.3;
+		else
+			this.xRot = 0;
+	}
+	
+	public void flag()
+	{
+		if (!this.open)
+		{
+			this.marked = true;
+		}
+	}
+	public void unflag()
+	{
+		if (!this.open)
+		{
+			this.marked = false;
+		}
+	}
 }
