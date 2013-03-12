@@ -10,5 +10,6 @@ public class Face {
 		this.vertex = vert;
 		this.normal = norm;
 	}
+	public Face() {};
 	
 }

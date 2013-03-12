@@ -6,9 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.Vector4f;
 
 public class ObjLoader{
-	public static ObjModel loadObj (String f) throws FileNotFoundException, IOException {
+	public static ObjModel loadObj (String f, boolean triangulate) throws FileNotFoundException, IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(f));
 		ObjModel m = new ObjModel();
 		
@@ -31,18 +32,41 @@ public class ObjLoader{
 			}
 			else if (line.startsWith("f "))
 			{
-				Vector3f vertexIndices = new Vector3f(Float.valueOf(line.split(" ")[1].split("/")[0]),
-						Float.valueOf(line.split(" ")[2].split("/")[0]),
-						Float.valueOf(line.split(" ")[3].split("/")[0]));
-				Vector3f normalIndices = new Vector3f(Float.valueOf(line.split(" ")[1].split("/")[2]),
-						Float.valueOf(line.split(" ")[2].split("/")[2]),
-						Float.valueOf(line.split(" ")[3].split("/")[2]));
-				Face face = new Face(vertexIndices, normalIndices);
-				m.faces.add(face);
+				if(triangulate)
+				{
+					Vector3f vertexIndices = new Vector3f(Float.valueOf(line.split(" ")[1].split("/")[0]),
+							Float.valueOf(line.split(" ")[2].split("/")[0]),
+							Float.valueOf(line.split(" ")[3].split("/")[0]));
+					Vector3f normalIndices = new Vector3f(Float.valueOf(line.split(" ")[1].split("/")[2]),
+							Float.valueOf(line.split(" ")[2].split("/")[2]),
+							Float.valueOf(line.split(" ")[3].split("/")[2]));
+					Face face = new Face(vertexIndices, normalIndices);
+					m.faces.add(face);
+					m.triangulate = true;
+				}
+				else
+				{
+					Vector4f vertexIndices = new Vector4f(Float.valueOf(line.split(" ")[1].split("/")[0]),
+							Float.valueOf(line.split(" ")[2].split("/")[0]),
+							Float.valueOf(line.split(" ")[3].split("/")[0]),
+							Float.valueOf(line.split(" ")[4].split("/")[0]));
+					Vector4f normalIndices = new Vector4f(Float.valueOf(line.split(" ")[1].split("/")[2]),
+							Float.valueOf(line.split(" ")[2].split("/")[2]),
+							Float.valueOf(line.split(" ")[3].split("/")[2]),
+							Float.valueOf(line.split(" ")[4].split("/")[2]));
+					QuadFace face = new QuadFace(vertexIndices, normalIndices);
+					m.faces.add(face);
+					m.triangulate = false;
+				}
 			}
 		}
 		reader.close();
 		
 		return m;
+	}
+	
+	public static ObjModel loadObj(String f) throws FileNotFoundException, IOException
+	{
+		return loadObj(f, true);
 	}
 }
