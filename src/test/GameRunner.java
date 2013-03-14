@@ -15,13 +15,15 @@ import org.lwjgl.opengl.GL11;
 
 public class GameRunner {
 	
-	private ArrayList<Entity> entities = new ArrayList<Entity>();
+	public static ArrayList<Entity> entities = new ArrayList<Entity>();
 	
 	private ArrayList<Entity> addList = new ArrayList<Entity>();
 	
 	private ArrayList<Entity> removeList = new ArrayList<Entity>();
 	
 	private FloatBuffer material;
+	
+	public static MainDisplay mainDisplay;
 	
 	public static ObjModel playerModel;
 	public static ObjModel cubeModel;
@@ -47,10 +49,13 @@ public class GameRunner {
 	
 	private boolean key = false;
 	
+	public static MultiPlayer multiplayer;
+	
 	public void init(MainDisplay main) {
 		//entities = new ArrayList<Entity>();
+		this.mainDisplay = main;
 		try {
-			playerModel = ObjLoader.loadObj("res/ball.obj");
+			playerModel = ObjLoader.loadObj("res/cube.obj", false);
 			cubeModel = ObjLoader.loadObj("res/cube.obj",false);
 			flagModel = ObjLoader.loadObj("res/flag.obj");
 			bombModel = ObjLoader.loadObj("res/bomb.obj");
@@ -79,6 +84,8 @@ public class GameRunner {
 				//entities.add(b);
 			}
 		}
+		
+		multiplayer = new MultiPlayer();
 		
 	}
 	
@@ -133,6 +140,9 @@ public class GameRunner {
 					camera.z() + " Pitch:" + camera.pitch() + " Yaw:" + camera.yaw() +
 					" Roll:" + camera.roll());
 		}*/
+		
+		
+		
 		for (Entity e: entities)
 		{		
 			e.update();
@@ -160,6 +170,7 @@ public class GameRunner {
 							b.flag();
 						else
 							b.unflag();
+						updateMP();
 						break;
 					}
 				}
@@ -190,6 +201,7 @@ public class GameRunner {
 							System.out.println("Generated Grid");
 						}
 						b.open(1,j);
+						updateMP();
 						break;
 					}
 				}
@@ -220,6 +232,18 @@ public class GameRunner {
 			GO=true;
 			System.out.println("YOU WIN!");
 		}
+		
+		try {
+			multiplayer.update(time);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
+		{
+			main.gameRunning = false;
+			multiplayer.quit();
+		}
 	}
 	
 	
@@ -234,7 +258,7 @@ public class GameRunner {
 		camera.applyTranslations();
 		
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-		
+		multiplayer.renderRemoteGrid();
 		for (Entity e : entities) {
 			e.render();
 		}
@@ -299,6 +323,10 @@ public class GameRunner {
 			}
 			System.out.println();
 		}
+	}
+	
+	public static void updateMP() {
+		multiplayer.updateGrid();
 	}
 	
 	

@@ -142,6 +142,7 @@ public class Box extends Entity{
 		if (!this.open)
 		{
 			this.marked = true;
+			GameRunner.updateMP();
 		}
 	}
 	public void unflag()
@@ -149,6 +150,7 @@ public class Box extends Entity{
 		if (!this.open)
 		{
 			this.marked = false;
+			GameRunner.updateMP();
 		}
 	}
 }

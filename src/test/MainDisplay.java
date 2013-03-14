@@ -21,11 +21,14 @@ public class MainDisplay {
 	
 	GameRunner runner;
 	
+	public boolean gameRunning;
+	
 	public MainDisplay() {
 		try{
 			
 			Display.setDisplayMode(new DisplayMode(800,600));
 			Display.setFullscreen(false);
+			Display.setTitle("LOADING...");
 			Display.create();
 			
 		} catch (LWJGLException e) {
@@ -46,7 +49,7 @@ public class MainDisplay {
 		
 		lastFPS = getTime();
 		
-		boolean gameRunning = true;
+		gameRunning = true;
 		
 		while (!Display.isCloseRequested() && gameRunning)
 		{
@@ -77,12 +80,13 @@ public class MainDisplay {
 			
 			Display.sync(60);
 			
-			updateFPS();
+			if (runner.multiplayer.isHost&&!runner.multiplayer.isClient)
+				updateFPS("Host: ");
+			else if (!runner.multiplayer.isHost&&runner.multiplayer.isClient)
+				updateFPS("Client: ");
+			else
+				updateFPS("FPS ");
 			
-			if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
-			{
-				gameRunning = false;
-			}
 		}
 		
 		Display.destroy();
@@ -182,7 +186,7 @@ public class MainDisplay {
 		return delta;
 	}
 	
-	public void updateFPS() {
+	public void updateFPS(String s) {
 		if (getTime() - lastFPS > 1000) {
 			Display.setTitle("FPS: " + fps);
 			fps = 0;
