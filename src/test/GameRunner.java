@@ -8,6 +8,7 @@ import java.util.Random;
 
 
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -15,7 +16,7 @@ import org.lwjgl.opengl.GL11;
 
 public class GameRunner {
 	
-	private ArrayList<Entity> entities = new ArrayList<Entity>();
+	public static ArrayList<Entity> entities = new ArrayList<Entity>();
 	
 	private ArrayList<Entity> addList = new ArrayList<Entity>();
 	
@@ -23,14 +24,29 @@ public class GameRunner {
 	
 	private FloatBuffer material;
 	
+	public static MainDisplay mainDisplay;
+	
 	public static ObjModel playerModel;
 	public static ObjModel cubeModel;
 	public static ObjModel bombModel;
 	public static ObjModel flagModel;
 	
-	public static int size = 20;
-	public static int mines = 60;
+	public static ObjModel gameOverModel;
+	public static ObjModel youWinModel;
+	
+	public static int size = 10;
+	public static int mines = 15;
 	public static int opened = 0;
+	
+	public Number number;
+	
+	public static int flags = 0;
+	
+	public static boolean GO = false;
+	
+	public static boolean chatOpen = false;
+	
+	public static String curChat = "";
 	
 	
 	private int num = 1;
@@ -43,19 +59,68 @@ public class GameRunner {
 	
 	public static Camera camera;
 	
+	public boolean keydown2 = false;
+	
 	private boolean key = false;
+	
+	public static MultiPlayer multiplayer;
+	
+	
+	public BitmapFont font;
+	
+
+	private void defineLight() {
+		FloatBuffer buffer;
+		
+		buffer = BufferUtils.createFloatBuffer(4);
+		buffer.put(1).put(1).put(1).put(1); 
+		buffer.flip();
+		GL11.glLight(GL11.GL_LIGHT0, GL11.GL_AMBIENT, buffer);
+		
+		buffer = BufferUtils.createFloatBuffer(4);
+		buffer.put(1).put(1).put(1).put(1);
+		buffer.flip();
+		GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, buffer);
+		
+		// setup the ambient light 
+
+		buffer = BufferUtils.createFloatBuffer(4);
+		buffer.put(0.8f).put(0.8f).put(0.8f).put(0.8f);
+		buffer.flip();
+		GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, buffer);
+		GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_TRUE);
+		
+		// set up the position of the light
+
+		buffer = BufferUtils.createFloatBuffer(4);
+		buffer.put(10).put(10).put(5).put(0);
+		buffer.flip();
+		GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, buffer);
+		
+		GL11.glEnable(GL11.GL_LIGHT0);
+		
+		material = BufferUtils.createFloatBuffer(4);
+	}
 	
 	public void init(MainDisplay main) {
 		//entities = new ArrayList<Entity>();
+		this.mainDisplay = main;
+		//defineLight();
 		try {
-			playerModel = ObjLoader.loadObj("res/ball.obj");
+			playerModel = ObjLoader.loadObj("res/cube.obj", false);
 			cubeModel = ObjLoader.loadObj("res/cube.obj",false);
 			flagModel = ObjLoader.loadObj("res/flag.obj");
 			bombModel = ObjLoader.loadObj("res/bomb.obj");
-			for (int i=1; i<=8;i++)
+			for (int i=0; i<=9;i++)
 			{
 				numbers.add(ObjLoader.loadObj("res/" + i + ".obj"));
 			}
+			gameOverModel = ObjLoader.loadObj("res/GAMEOVER.obj");
+			youWinModel = ObjLoader.loadObj("res/YOUWIN.obj");
+			
+			Texture fontTexture = main.loader.getTexture("res/font.png");
+			font = new BitmapFont(fontTexture, 32 ,32);
+			System.out.println(GL11.glGetError());
 		} catch (IOException e) {
 			e.printStackTrace();
 			Display.destroy();
@@ -78,6 +143,13 @@ public class GameRunner {
 			}
 		}
 		
+		number = new Number(mines, Colors.numberColor, 3);
+		number.zPos = -1-2*size;
+		number.yPos = 5;
+		number.xPos = size;
+		
+		multiplayer = new MultiPlayer();
+		
 	}
 	
 	private static void checkInput() {
@@ -89,11 +161,33 @@ public class GameRunner {
             Mouse.setGrabbed(false);
     }
 	
+	public static void gameOver() {
+		System.out.println("GAME OVER");
+		GO = true;
+		for (Box[] a : grid)
+		{
+			for (Box b : a)
+			{
+				if (b.type == -1)
+				{
+					b.marked = false;
+					b.open = true;
+					
+				}
+			}
+		}
+		Text text = new Text(gameOverModel, Colors.gameOverColor);
+		text.zPos = -1-2*size;
+		text.yPos = 7;
+		text.xPos = size-1;
+		entities.add(text);
+	}
+	
 	private static void setUpCamera() {
         camera = new EulerCamera.Builder()
                 .setAspectRatio((float) Display.getWidth() / Display.getHeight())
-                .setRotation(-1.12f, 0.16f, 0f)
-                .setPosition(-1.38f, 1.36f, 7.95f)
+                .setRotation(80f, 90f, 0f)
+                .setPosition(10f, 36f, 19f)
                 .setFieldOfView(60)
                 .build();
         camera.applyOptimalStates();
@@ -101,7 +195,18 @@ public class GameRunner {
     }
 	
 	public void update(MainDisplay main, int time) {
-		checkInput();
+		
+			checkInput();
+		
+		/*if (Keyboard.isKeyDown(Keyboard.KEY_F))
+		{
+			System.out.println("Camera X:" + camera.x() + " Y:" + camera.y() + " Z:" + 
+					camera.z() + " Pitch:" + camera.pitch() + " Yaw:" + camera.yaw() +
+					" Roll:" + camera.roll());
+		}*/
+		if (mines-flags>=0)
+			number.number = mines-flags;
+		number.update();
 		for (Entity e: entities)
 		{		
 			e.update();
@@ -114,7 +219,7 @@ public class GameRunner {
 			}
 		}
 		
-		if (Keyboard.isKeyDown(Keyboard.KEY_E) && !key)
+		if (Keyboard.isKeyDown(Keyboard.KEY_E) && !key && !GO && !chatOpen)
 		{
 			for (Box[] i : grid)
 			{
@@ -129,6 +234,7 @@ public class GameRunner {
 							b.flag();
 						else
 							b.unflag();
+						updateMP();
 						break;
 					}
 				}
@@ -139,7 +245,7 @@ public class GameRunner {
 			}
 			key = true;
 		}
-		else if (Keyboard.isKeyDown(Keyboard.KEY_Q))
+		else if (Keyboard.isKeyDown(Keyboard.KEY_Q) && !GO && !chatOpen)
 		{
 			
 			for (int i = 0; i<size; i++)
@@ -159,6 +265,7 @@ public class GameRunner {
 							System.out.println("Generated Grid");
 						}
 						b.open(1,j);
+						updateMP();
 						break;
 					}
 				}
@@ -183,6 +290,57 @@ public class GameRunner {
 		{
 			key = false;
 		}
+		
+		if (opened==size*size-mines)
+		{
+			GO=true;
+			System.out.println("YOU WIN!");
+		}
+		
+		try {
+			multiplayer.update(time);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
+		{
+			if (!chatOpen)
+			{
+				main.gameRunning = false;
+				multiplayer.quit();
+			}
+			else
+			{
+				chatOpen = false;
+			}
+		}
+		
+		if (!multiplayer.isHost && !multiplayer.isClient && Keyboard.isKeyDown(Keyboard.KEY_H) && !chatOpen)
+		{
+			multiplayer.startHosting(4445);
+		}
+		if (!multiplayer.isHost && !multiplayer.isClient && Keyboard.isKeyDown(Keyboard.KEY_J) && !chatOpen)
+		{
+			multiplayer.joinServer("localhost", 4445);
+		}
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_T) && !chatOpen)
+		{
+			chatOpen = true;
+			curChat = "";
+		}
+		
+		if (chatOpen && Keyboard.next())
+		{
+			char c = Keyboard.getEventCharacter();
+			if (Integer.valueOf(c) >= ' '-' ' && Integer.valueOf(c) <= ' '-' '+128)
+			{
+				curChat = curChat + c;
+			}
+		}
+		
+
 	}
 	
 	
@@ -197,7 +355,8 @@ public class GameRunner {
 		camera.applyTranslations();
 		
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-		
+		multiplayer.renderRemoteGrid();
+		number.render();
 		for (Entity e : entities) {
 			e.render();
 		}
@@ -210,11 +369,29 @@ public class GameRunner {
 		}
 		
 		drawGUI(main);
+		
+		
+
 	}
 	
 	public void drawGUI(MainDisplay main)
 	{
+		main.enterOrtho();
 		
+		
+		
+		font.drawString(1, "MINES LEFT: " + mines, 10, 10, Colors.flagColor);
+		if (GO)
+		{
+			font.drawString(1, "GAME OVER", 10, 50, Colors.bombColor);
+		}
+		
+		if (chatOpen)
+		{
+			font.drawString(1, ">"+curChat, 10, 350, Colors.boxColor);
+		}
+		
+		main.leaveOrtho();
 	}
 	
 	public void generateGrid(int fi, int fj) {
@@ -255,8 +432,17 @@ public class GameRunner {
 					grid[i][j].setType(count);
 					grid[i][j].init=true;
 				}
+				if (grid[i][j].type!=-1)
+					System.out.print(grid[i][j].type+ "  ");
+				else
+					System.out.print(grid[i][j].type+ " ");
 			}
+			System.out.println();
 		}
+	}
+	
+	public static void updateMP() {
+		multiplayer.updateGrid();
 	}
 	
 	

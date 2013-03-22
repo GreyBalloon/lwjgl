@@ -169,7 +169,7 @@ public final class EulerCamera implements Camera {
 */
     public void processMouse() {
         final float MAX_LOOK_UP = 90;
-        final float MAX_LOOK_DOWN = -90;
+        final float MAX_LOOK_DOWN = -100;
         float mouseDX = Mouse.getDX() * 0.16f;
         float mouseDY = Mouse.getDY() * 0.16f;
         if (yaw + mouseDX >= 360) {
@@ -196,7 +196,7 @@ public final class EulerCamera implements Camera {
 */
     public void processMouse(float mouseSpeed) {
         final float MAX_LOOK_UP = 90;
-        final float MAX_LOOK_DOWN = -90;
+        final float MAX_LOOK_DOWN = -100;
         float mouseDX = Mouse.getDX() * mouseSpeed * 0.16f;
         float mouseDY = Mouse.getDY() * mouseSpeed * 0.16f;
         if (yaw + mouseDX >= 360) {

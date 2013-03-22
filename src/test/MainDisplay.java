@@ -21,11 +21,16 @@ public class MainDisplay {
 	
 	GameRunner runner;
 	
+	public TextureLoader loader;
+	
+	public boolean gameRunning;
+	
 	public MainDisplay() {
 		try{
 			
 			Display.setDisplayMode(new DisplayMode(800,600));
 			Display.setFullscreen(false);
+			Display.setTitle("LOADING...");
 			Display.create();
 			
 		} catch (LWJGLException e) {
@@ -42,11 +47,13 @@ public class MainDisplay {
 		*/
 	}
 	
+	
+	
 	public void gameLoop() {
 		
 		lastFPS = getTime();
 		
-		boolean gameRunning = true;
+		gameRunning = true;
 		
 		while (!Display.isCloseRequested() && gameRunning)
 		{
@@ -77,12 +84,16 @@ public class MainDisplay {
 			
 			Display.sync(60);
 			
-			updateFPS();
+			if (runner.multiplayer.isHost&&!runner.multiplayer.isClient)
+				updateFPS("Host: ");
+			else if (!runner.multiplayer.isHost&&runner.multiplayer.isClient)
+				updateFPS("Client: ");
+			else
+				updateFPS("FPS ");
 			
-			if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
-			{
-				gameRunning = false;
-			}
+			//update(delta);
+			//renderGL();
+			
 		}
 		
 		Display.destroy();
@@ -101,7 +112,8 @@ public class MainDisplay {
 		GL11.glPushMatrix();
 		
 		GL11.glLoadIdentity();
-		GL11.glOrtho(0, 800, 60, 0, -1, 1);
+		
+		GL11.glOrtho(0, 800, 600, 0, -1, 1);
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
 		GL11.glDisable(GL11.GL_LIGHTING);
 	}
@@ -115,11 +127,13 @@ public class MainDisplay {
 
 	
 	public void init() {
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		//GL11.glEnable(GL11.GL_TEXTURE_3D);
 		//GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		GL11.glDepthFunc(GL11.GL_LEQUAL);
 		GL11.glShadeModel(GL11.GL_SMOOTH);
+		GL11.glDisable(GL11.GL_LIGHTING);
 		
 		// define the properties for the perspective of the scene
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
@@ -127,39 +141,43 @@ public class MainDisplay {
 		GLU.gluPerspective(4.50f, ((float) 800) / ((float) 600), 0.1f, 100.0f);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		GL11.glHint(GL11.GL_PERSPECTIVE_CORRECTION_HINT, GL11.GL_NICEST);
-		
+		loader = new TextureLoader();
 		runner = new GameRunner();
 		
 		runner.init(this);
 	}
 	
 	public void update(int delta) {
-		rotation += .15f * delta;
+		// rotate quad
+		rotation += 0.15f * delta;
 		
-		if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) x -= .35f * delta;
-		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) x += .35f * delta;
+		if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) x -= 0.35f * delta;
+		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) x += 0.35f * delta;
 		
-		if (Keyboard.isKeyDown(Keyboard.KEY_UP)) y += .35f * delta;
-		if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) y -= .35f * delta;
+		if (Keyboard.isKeyDown(Keyboard.KEY_UP)) y -= 0.35f * delta;
+		if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) y += 0.35f * delta;
 		
+		// keep quad on the screen
 		if (x < 0) x = 0;
 		if (x > 800) x = 800;
-		if (y<0) y = 0;
+		if (y < 0) y = 0;
 		if (y > 600) y = 600;
 		
-		
+		updateFPS("FPS:  "); // update FPS Counter
 	}
 	
 	public void renderGL() {
+		// Clear The Screen And The Depth Buffer
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-		
-		GL11.glColor3f(.5f, .5f, 1f);
-		
+
+		// R,G,B,A Set The Color To Blue One Time Only
+		GL11.glColor3f(0.5f, 0.5f, 1.0f);
+
+		// draw quad
 		GL11.glPushMatrix();
 			GL11.glTranslatef(x, y, 0);
 			GL11.glRotatef(rotation, 0f, 0f, 1f);
 			GL11.glTranslatef(-x, -y, 0);
-			
 			
 			GL11.glBegin(GL11.GL_QUADS);
 				GL11.glVertex2f(x - 50, y - 50);
@@ -179,12 +197,20 @@ public class MainDisplay {
 		int delta = (int) (time - lastFrame);
 		lastFrame = time;
 		
+		
 		return delta;
 	}
 	
-	public void updateFPS() {
+	public void initGL() {
+		GL11.glMatrixMode(GL11.GL_PROJECTION);
+		GL11.glLoadIdentity();
+		GL11.glOrtho(0, 800, 0, 600, 1, -1);
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+	}
+	
+	public void updateFPS(String s) {
 		if (getTime() - lastFPS > 1000) {
-			Display.setTitle("FPS: " + fps);
+			Display.setTitle(s + fps);
 			fps = 0;
 			lastFPS += 1000;
 		}

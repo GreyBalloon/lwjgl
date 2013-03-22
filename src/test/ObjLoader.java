@@ -42,6 +42,7 @@ public class ObjLoader{
 							Float.valueOf(line.split(" ")[3].split("/")[2]));
 					Face face = new Face(vertexIndices, normalIndices);
 					m.faces.add(face);
+					m.triangulate = true;
 				}
 				else
 				{
@@ -55,6 +56,7 @@ public class ObjLoader{
 							Float.valueOf(line.split(" ")[4].split("/")[2]));
 					QuadFace face = new QuadFace(vertexIndices, normalIndices);
 					m.faces.add(face);
+					m.triangulate = false;
 				}
 			}
 		}

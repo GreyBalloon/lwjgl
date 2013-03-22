@@ -5,6 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 public class Entity {
 	public ObjModel model;
+	public Vector3f color;
 	public float xPos, yPos, zPos, xRot, yRot, zRot;
 	
 	public Entity(ObjModel model) {
@@ -21,7 +22,8 @@ public class Entity {
 		
 		setRenderLoc(1);
 		renderOther();
-		renderModel(this.model,true);
+		renderColor(this.color);
+		renderModel(this.model);
 		
 		GL11.glPopMatrix();
 
@@ -45,8 +47,12 @@ public class Entity {
 		
 	}
 	
-	public void renderModel(ObjModel model, boolean triangulate) {
-		if (triangulate)
+	public void renderColor(Vector3f color) {
+		GL11.glColor3f(color.x, color.y, color.z);
+	}
+	
+	public void renderModel(ObjModel model) {
+		if (model.triangulate)
 		{
 			GL11.glBegin(GL11.GL_TRIANGLES);
 			

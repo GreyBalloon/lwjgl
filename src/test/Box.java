@@ -8,8 +8,8 @@ import org.lwjgl.util.vector.Vector3f;
 
 public class Box extends Entity{
 	private Vector3f color;
-	private boolean open = false;
-	private boolean marked = false;
+	public boolean open = false;
+	public boolean marked = false;
 	private ObjModel inside;
 	private ObjModel flag;
 	public boolean init = false;
@@ -30,7 +30,7 @@ public class Box extends Entity{
 		renderColor(Colors.boxColor);
 		if (!(this.open && this.type==0))
 		{
-			renderModel(this.model,false);
+			renderModel(this.model);
 		}
 		
 		
@@ -47,10 +47,10 @@ public class Box extends Entity{
 			}
 			else
 			{
-				renderColor(Colors.numberColors[type-1]);
+				renderColor(Colors.numberColors[type]);
 				GL11.glScalef(2, 2, 2);
 			}
-			renderModel(this.inside,true);
+			renderModel(this.inside);
 		}
 		else if (this.open && this.type==0)
 		{
@@ -58,12 +58,12 @@ public class Box extends Entity{
 		}
 		else if (this.marked) {
 			renderColor(Colors.flagColor);
-			renderModel(this.flag,true);
+			renderModel(this.flag);
 		}
 		else {
 			GL11.glScalef(.5f, .5f, .5f);
 			renderColor(Colors.innerBoxColor);
-			renderModel(this.model,false);
+			renderModel(this.model);
 		}
 		GL11.glPopMatrix();
 
@@ -75,7 +75,7 @@ public class Box extends Entity{
 		this.init = true;
 		if (type>0)
 		{
-			this.inside = GameRunner.numbers.get(type-1);
+			this.inside = GameRunner.numbers.get(type);
 		}
 		else if (type == -1)
 		{
@@ -88,7 +88,16 @@ public class Box extends Entity{
 		if (!this.marked)
 		{
 			this.open = true;
+			if (this.type == -1)
+			{
+
+				System.out.println(this.type);
+				GameRunner.gameOver();
+			}
+			else
+			{
 			GameRunner.opened++;
+			}
 			if (this.type == 0)
 			{
 				for(int l=-1; l<=1; l++)
@@ -114,10 +123,7 @@ public class Box extends Entity{
 	public boolean getFlagged() {
 		return this.marked;
 	}
-	
-	public void renderColor(Vector3f color) {
-		GL11.glColor3f(color.x, color.y, color.z);
-	}
+
 	
 
 	public void update() {
@@ -133,6 +139,8 @@ public class Box extends Entity{
 		if (!this.open)
 		{
 			this.marked = true;
+			GameRunner.updateMP();
+			GameRunner.flags++;
 		}
 	}
 	public void unflag()
@@ -140,6 +148,8 @@ public class Box extends Entity{
 		if (!this.open)
 		{
 			this.marked = false;
+			GameRunner.updateMP();
+			GameRunner.flags--;
 		}
 	}
 }
