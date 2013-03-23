@@ -33,6 +33,15 @@ public class MultiPlayer {
 	
 	public String[] oldData = new String[10];
 	
+	public ArrayList<String> chat = new ArrayList<String>();
+	
+	public ArrayList<Long> timeOut = new ArrayList<Long>();
+	
+	public final int coolDown = 5000;
+	public final int maxChat = 10;
+	
+	public String sendChat = "";
+	
 	PrintWriter out;
 	BufferedReader in;
 	
@@ -158,42 +167,7 @@ public class MultiPlayer {
 	public void update(int delta) throws IOException
 	{
 		
-		if (input.ready())
-		{
-			String ln = input.readLine();
-			System.out.println(">"+ln);
-			ln = ln.toLowerCase();
-			if (ln.startsWith("host "))
-			{
-				if (!isHost&&!isClient)
-				{
-					int port = Integer.valueOf(ln.split("host ")[1]);
-					this.startHosting(port);
-				}
-			}
-			else if (ln.startsWith("stop"))
-			{
-				if (isHost&&!isClient)
-				{
-					this.stopHosting();
-				}
-			}
-			else if (ln.startsWith("connect "))
-			{
-				if (!isHost&&!isClient)
-				{
-					String host = ln.split("connect ")[1].split(":")[0];
-					int port = Integer.valueOf(ln.split("connect ")[1].split(":")[1]);
-					this.joinServer(host, port);
-				}
-			}else if (ln.startsWith("disconnect"))
-			{
-				if (!isHost&&isClient)
-				{
-					this.leaveServer();
-				}
-			}
-		}
+		
 		if (isHost)
 		{
 			if (!hasClient)
@@ -286,6 +260,55 @@ public class MultiPlayer {
 			}
 		}
 	}
+	
+	public void chatParse(String ln)
+	{
+		if (ln.equals("")){}
+		else if (ln.startsWith("/"))
+		{
+			ln = ln.toLowerCase();
+			if (ln.startsWith("/host "))
+			{
+				if (!isHost&&!isClient)
+				{
+					int port = Integer.valueOf(ln.split("host ")[1]);
+					this.startHosting(port);
+				}
+			}
+			else if (ln.startsWith("/stop"))
+			{
+				if (isHost&&!isClient)
+				{
+					this.stopHosting();
+				}
+			}
+			else if (ln.startsWith("/connect "))
+			{
+				if (!isHost&&!isClient)
+				{
+					String host = ln.split("connect ")[1].split(":")[0];
+					int port = Integer.valueOf(ln.split("connect ")[1].split(":")[1]);
+					this.joinServer(host, port);
+				}
+			}else if (ln.startsWith("/disconnect"))
+			{
+				if (!isHost&&isClient)
+				{
+					this.leaveServer();
+				}
+			}
+			chat.add(ln);
+			timeOut.add(MainDisplay.getTime());
+		}
+		else
+		{
+			sendChat = "cht "+ln;
+			chat.add(ln);
+			timeOut.add(MainDisplay.getTime());
+		}
+		//chat.add(ln);
+		//timeOut.add(MainDisplay.getTime());
+	}
 
 	private void parse(String line) {
 		if (line.startsWith("ploc "))
@@ -313,8 +336,10 @@ public class MultiPlayer {
 				player = new Player(GameRunner.playerModel);
 			GameRunner.entities.remove(player);
 			player.yRot = Float.valueOf(line.split(" ")[1]);
-			player.xRot = (float) (Math.abs(Math.cos(player.yRot))*Float.valueOf(line.split(" ")[2]));
-			player.zRot = (float) (Math.abs(Math.sin(player.yRot))*Float.valueOf(line.split(" ")[2]));
+			chat.add(line.split(" ")[1]);
+			timeOut.add(MainDisplay.getTime());
+			//player.xRot = (float) (Math.abs(Math.cos(player.yRot))*Float.valueOf(line.split(" ")[2]));
+			//player.zRot = (float) (Math.abs(Math.sin(player.yRot))*Float.valueOf(line.split(" ")[2]));
 			GameRunner.entities.add(player);
 		}
 		else if (line.startsWith("grid "))
@@ -377,6 +402,12 @@ public class MultiPlayer {
 			remoteGrid = newGrid;
 			remoteGridSize = newGrid.length;
 		}
+		else if (line.startsWith("cht "))
+		{
+			line = line.split("cht ")[1];
+			chat.add(line);
+			timeOut.add(MainDisplay.getTime());
+		}
 	}
 	
 	public void quit()
@@ -401,14 +432,20 @@ public class MultiPlayer {
 		{
 			oldData[2] = grid;
 			out.println(grid);
-		}	
+		}
 		
-		/*String rot = "prot " + GameRunner.camera.yaw() + " " + GameRunner.camera.pitch();
-		if (!pos.equals(oldData[1]))
+		if (!sendChat.equals(oldData[3]))
 		{
-			oldData[1] = pos;
-			out.println(pos);
-		}*/
+			oldData[3] = sendChat;
+			out.println(sendChat);
+		}
+		
+		String rot = "prot " + GameRunner.camera.yaw() + " " + GameRunner.camera.pitch();
+		if (!rot.equals(oldData[1]))
+		{
+			oldData[1] = rot;
+			out.println(rot);
+		}
 	}
 	
 	public void updateGrid()
@@ -429,6 +466,27 @@ public class MultiPlayer {
 			}
 			grid = grid.concat(" n");
 		}
+	}
+	
+	public void renderChat()
+	{
+		String s = "";
+		for (int i=chat.size()-1;i>=(chat.size()<=maxChat? 0:chat.size()-maxChat); i--)
+		{
+			if (GameRunner.chatOpen)
+			{
+				GameRunner.font.drawString(1, chat.get(i), 10, 550-(chat.size()-i)*40, Colors.boxColor);
+			}
+			else
+			{
+				if (MainDisplay.getTime()-timeOut.get(i)<coolDown)
+				{
+					GameRunner.font.drawString(1, chat.get(i), 10, 550-(chat.size()-i)*40, Colors.boxColor);
+				}
+			}
+		}
+		
+		
 	}
 	
 	public void renderRemoteGrid()

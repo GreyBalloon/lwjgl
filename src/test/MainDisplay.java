@@ -188,7 +188,7 @@ public class MainDisplay {
 		GL11.glPopMatrix();
 	}
 	
-	public long getTime() {
+	public static long getTime() {
 		return (Sys.getTime() * 1000) / Sys.getTimerResolution();
 	}
 	
