@@ -128,7 +128,7 @@ public class MainDisplay {
 	
 	public void init() {
 		//GL11.glEnable(GL11.GL_TEXTURE_3D);
-		//GL11.glEnable(GL11.GL_CULL_FACE);
+		
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		GL11.glDepthFunc(GL11.GL_LEQUAL);
@@ -137,6 +137,8 @@ public class MainDisplay {
 		
 		// define the properties for the perspective of the scene
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
+		GL11.glPolygonOffset(1,1);
+		GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
 		GL11.glLoadIdentity();		
 		GLU.gluPerspective(4.50f, ((float) 800) / ((float) 600), 0.1f, 100.0f);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);

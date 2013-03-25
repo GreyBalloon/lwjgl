@@ -7,11 +7,11 @@ public class Number extends Entity{
 	public int number;
 	private int min;
 	
-	public Number(int num, Vector3f color, int min)
+	public Number(int num, Color numbercolor, int min)
 	{
 		super(new ObjModel());
 		this.number = num;
-		this.color = color;
+		this.color = numbercolor;
 		this.min = min;
 	}
 	

@@ -9,6 +9,7 @@ import java.util.Random;
 
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -38,7 +39,7 @@ public class GameRunner {
 	public static int mines = 15;
 	public static int opened = 0;
 	
-	public Number number;
+	public static Number number;
 	
 	public static int flags = 0;
 	
@@ -132,6 +133,17 @@ public class GameRunner {
 		
 		setUpCamera();
 		
+		resetGrid();
+		
+		
+		multiplayer = new MultiPlayer();
+		
+	}
+	
+	public static void resetGrid()
+	{
+		GO=false;
+		opened = 0;
 		for (int i = 0; i<size; i++)
 		{
 			for(int j=0; j<size; j++)
@@ -149,8 +161,24 @@ public class GameRunner {
 		number.yPos = 5;
 		number.xPos = size;
 		
-		multiplayer = new MultiPlayer();
+		flags = 0;
 		
+		entities = new ArrayList<Entity>();
+		
+	}
+	
+	public static void coverGrid() {
+		opened = 0;
+		flags = 0;
+		for (Box[] i : grid)
+		{
+			for( Box j : i)
+			{
+				j.open = false;
+				j.marked = false;
+			}
+		}
+		GO=false;
 	}
 	
 	private static void checkInput() {
@@ -340,6 +368,12 @@ public class GameRunner {
 			curChat = "";
 			keydown2 = true;
 			Mouse.setGrabbed(false);
+			Keyboard.destroy();
+			try {
+				Keyboard.create();
+			} catch (LWJGLException e1) {
+				e1.printStackTrace();
+			}
 			while (Keyboard.next()){}
 		}
 		

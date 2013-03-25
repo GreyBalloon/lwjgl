@@ -30,7 +30,7 @@ public class Box extends Entity{
 		renderColor(Colors.boxColor);
 		if (!(this.open && this.type==0))
 		{
-			renderModel(this.model);
+			renderSingleModel(this.model);
 		}
 		
 		
@@ -85,21 +85,23 @@ public class Box extends Entity{
 	
 	public void open(int i, int j)
 	{
-		if (!this.marked)
+		if (!this.marked && !this.open)
 		{
+			GameRunner.multiplayer.addToChat(i + " " + j + " type: " + this.type);
 			this.open = true;
 			if (this.type == -1)
 			{
 
 				System.out.println(this.type);
 				GameRunner.gameOver();
+				//GameRunner.multiplayer.addToChat(i + " " + j);
 			}
 			else
 			{
 			GameRunner.opened++;
-			}
-			if (this.type == 0)
+			if (this.type == 01000)
 			{
+				GameRunner.multiplayer.addToChat("OPEN OTHERS");
 				for(int l=-1; l<=1; l++)
 				{
 					for(int m=-1; m<=1; m++)
@@ -113,6 +115,8 @@ public class Box extends Entity{
 				}
 				
 			}
+			}
+			
 		}
 	}
 	

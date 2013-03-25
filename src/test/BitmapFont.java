@@ -29,39 +29,24 @@ public class BitmapFont {
 		characterStep = characterWidth - 10;
 	}
 	
-	public void drawString(int font, String text, int x, int y, Vector3f color) {
-		// bind the font text so we can render quads with the characters
-
-		// on
-		
+	public void drawString(int font, String text, int x, int y, Color flagcolor) {
 		texture.bind();
 
-		// turn blending on so characters are displayed above the
 
-		// scene
 		
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
 		//GL11.glEnable(GL11.GL_TEXTURE_2D);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
-		// cycle through each character drawing a quad to the screen
 
-		// mapped to the right part of the texture
 
 		GL11.glBegin(GL11.GL_QUADS);
-		GL11.glColor3f(color.x, color.y, color.z);
+		GL11.glColor3f(flagcolor.r, flagcolor.g, flagcolor.b);
 		for (int i=0;i<text.length();i++) {
-			// get the index of the character baesd on the font starting
-
-			// with the space character
 
 			int c =text.charAt(i) - ' ';
-			// work out the u,v texture mapping coordinates based on the
 
-			// index of the character and the amount of texture per
-
-			// character
 
 			float u = ((c % charactersAcross) * characterWidthInTexture);
 			float v = 1-((7-(c / charactersAcross)) * characterHeightInTexture);
@@ -72,8 +57,6 @@ public class BitmapFont {
 			//System.out.print(" :" + (y+characterHeight)+ " " + (x+(i*characterStep)+characterWidth) + " " + v + ": ");
 			
 			
-			// setup the quad 
-
 			GL11.glTexCoord2f(u, v);
 			GL11.glVertex2f(x+(i*characterStep), y+characterHeight);
 			GL11.glTexCoord2f(u, v - characterHeightInTexture);
@@ -88,8 +71,6 @@ public class BitmapFont {
 		
 		GL11.glEnd();
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
-		
-		// reset the blending
 
 		GL11.glDisable(GL11.GL_BLEND);
 	}

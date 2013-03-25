@@ -5,7 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 public class Entity {
 	public ObjModel model;
-	public Vector3f color;
+	public Color color = new Color(1,1,1);
 	public float xPos, yPos, zPos, xRot, yRot, zRot;
 	
 	public Entity(ObjModel model) {
@@ -47,11 +47,36 @@ public class Entity {
 		
 	}
 	
-	public void renderColor(Vector3f color) {
-		GL11.glColor3f(color.x, color.y, color.z);
+	public void renderColor(Color color) {
+		GL11.glColor3f(color.r, color.g, color.b);
+		this.color = color;
 	}
 	
-	public void renderModel(ObjModel model) {
+	public void renderModel(ObjModel model)
+	{
+		this.renderModel(model, this.color.getBritened(.1f), this.color.getDarkened(.1f));
+	}
+	
+	public void renderModel(ObjModel model, Color color1, Color color2)
+	{
+		GL11.glEnable(GL11.GL_CULL_FACE);
+		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+		renderColor(color2);
+		renderSingleModel(model, false);
+		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+		renderColor(color1);
+		renderSingleModel(model, false);
+		GL11.glDisable(GL11.GL_CULL_FACE);
+	}
+	
+	public void renderSingleModel(ObjModel model)
+	{
+		renderSingleModel(model, true);
+	}
+	
+	public void renderSingleModel(ObjModel model, boolean line) {
+		if (line)
+			GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 		if (model.triangulate)
 		{
 			GL11.glBegin(GL11.GL_TRIANGLES);

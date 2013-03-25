@@ -263,7 +263,9 @@ public class MultiPlayer {
 	
 	public void chatParse(String ln)
 	{
-		if (ln.equals("")){}
+		if (ln.equals("")){
+			return;
+		}
 		else if (ln.startsWith("/"))
 		{
 			ln = ln.toLowerCase();
@@ -297,17 +299,27 @@ public class MultiPlayer {
 					this.leaveServer();
 				}
 			}
-			chat.add(ln);
-			timeOut.add(MainDisplay.getTime());
+			else if (ln.equals("/reset"))
+			{
+				GameRunner.resetGrid();
+			}
+			else if (ln.equals("/cover"))
+			{
+				GameRunner.coverGrid();
+			}
 		}
 		else
 		{
 			sendChat = "cht "+ln;
-			chat.add(ln);
-			timeOut.add(MainDisplay.getTime());
 		}
-		//chat.add(ln);
-		//timeOut.add(MainDisplay.getTime());
+		chat.add(ln);
+		timeOut.add(MainDisplay.getTime());
+	}
+	
+	public void addToChat(String ln)
+	{
+		chat.add(ln);
+		timeOut.add(MainDisplay.getTime());
 	}
 
 	private void parse(String line) {
@@ -336,7 +348,7 @@ public class MultiPlayer {
 				player = new Player(GameRunner.playerModel);
 			GameRunner.entities.remove(player);
 			player.yRot = Float.valueOf(line.split(" ")[1]);
-			chat.add(line.split(" ")[1]);
+			//chat.add(line.split(" ")[1]);
 			timeOut.add(MainDisplay.getTime());
 			//player.xRot = (float) (Math.abs(Math.cos(player.yRot))*Float.valueOf(line.split(" ")[2]));
 			//player.zRot = (float) (Math.abs(Math.sin(player.yRot))*Float.valueOf(line.split(" ")[2]));
