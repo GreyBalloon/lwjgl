@@ -87,21 +87,18 @@ public class Box extends Entity{
 	{
 		if (!this.marked && !this.open)
 		{
-			GameRunner.multiplayer.addToChat(i + " " + j + " type: " + this.type);
 			this.open = true;
 			if (this.type == -1)
 			{
 
 				System.out.println(this.type);
-				GameRunner.gameOver();
-				//GameRunner.multiplayer.addToChat(i + " " + j);
+				GameRunner.gameOver(true);
 			}
 			else
 			{
 			GameRunner.opened++;
-			if (this.type == 01000)
+			if (this.type == 0)
 			{
-				GameRunner.multiplayer.addToChat("OPEN OTHERS");
 				for(int l=-1; l<=1; l++)
 				{
 					for(int m=-1; m<=1; m++)

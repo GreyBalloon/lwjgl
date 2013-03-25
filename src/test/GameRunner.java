@@ -195,18 +195,33 @@ public class GameRunner {
             Mouse.setGrabbed(false);
     }
 	
-	public static void gameOver() {
+	public static void win() {
+		GO=true;
+		System.out.println("YOU WIN!");
+		Text text = new Text(youWinModel, Colors.youWinColor);
+		text.zPos = -1-2*size;
+		text.yPos = 7;
+		text.xPos = size-1;
+		entities.add(text);
+		
+		multiplayer.win();
+	}
+	
+	public static void gameOver(boolean showBombs) {
 		System.out.println("GAME OVER");
 		GO = true;
-		for (Box[] a : grid)
+		if (showBombs)
 		{
-			for (Box b : a)
+			for (Box[] a : grid)
 			{
-				if (b.type == -1)
+				for (Box b : a)
 				{
-					b.marked = false;
-					b.open = true;
-					
+					if (b.type == -1)
+					{
+						b.marked = false;
+						b.open = true;
+						
+					}
 				}
 			}
 		}
@@ -215,6 +230,7 @@ public class GameRunner {
 		text.yPos = 7;
 		text.xPos = size-1;
 		entities.add(text);
+		multiplayer.lose();
 	}
 	
 	private static void setUpCamera() {
@@ -282,11 +298,13 @@ public class GameRunner {
 		else if (Keyboard.isKeyDown(Keyboard.KEY_Q) && !GO && !chatOpen)
 		{
 			
+			
 			for (int i = 0; i<size; i++)
 			{
-				double dis = 1;
+				double dis = 0;
 				for(int j = 0; j<size; j++)
 				{
+					dis = 2;
 					Box b = grid[i][j];
 					dis = Math.sqrt((Math.pow(Math.sqrt(Math.pow(camera.x()-b.xPos,2)+Math.pow(camera.y()-b.yPos,2)),2)+Math.sqrt(Math.pow(camera.x()-b.xPos,2)+Math.pow(camera.z()-b.zPos,2))));
 					
@@ -298,7 +316,7 @@ public class GameRunner {
 							generateGrid(i,j);
 							System.out.println("Generated Grid");
 						}
-						b.open(1,j);
+						b.open(i,j);
 						updateMP();
 						break;
 					}
@@ -325,11 +343,13 @@ public class GameRunner {
 			key = false;
 		}
 		
-		if (opened==size*size-mines)
+		if (opened==((size)*(size)-mines-1) && !GO)
 		{
-			GO=true;
-			System.out.println("YOU WIN!");
+			win();
+			
 		}
+		//multiplayer.addToChat(String.valueOf(opened-((size)*(size)-mines-1)));
+		
 		
 		try {
 			multiplayer.update(time);
@@ -460,7 +480,12 @@ public class GameRunner {
 		font.drawString(1, "MINES LEFT: " + num, 10, 10, Colors.flagColor);
 		if (GO)
 		{
-			font.drawString(1, "GAME OVER", 10, 50, Colors.bombColor);
+			if (opened==((size)*(size)-mines-1))
+			{
+				font.drawString(1, "YOU WIN!", 10, 50, Colors.flagColor);
+			}
+			else
+				font.drawString(1, "GAME OVER", 10, 50, Colors.bombColor);
 		}
 		
 		if (chatOpen)

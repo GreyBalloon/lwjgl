@@ -42,6 +42,8 @@ public class MultiPlayer {
 	
 	public String sendChat = "";
 	
+	public String gameUpdate = "";
+	
 	PrintWriter out;
 	BufferedReader in;
 	
@@ -420,6 +422,19 @@ public class MultiPlayer {
 			chat.add(line);
 			timeOut.add(MainDisplay.getTime());
 		}
+		else if (line.startsWith("gu "))
+		{
+			if (line.equals("gu win") && !GameRunner.GO)
+			{
+				addToChat("Other Player Cleared Their Mines!");
+				GameRunner.gameOver(false);
+			}
+			else if(line.equals("gu lose") && !GameRunner.GO)
+			{
+				addToChat("Other Player Blew Up!");
+				GameRunner.win();
+			}
+		}
 	}
 	
 	public void quit()
@@ -450,6 +465,12 @@ public class MultiPlayer {
 		{
 			oldData[3] = sendChat;
 			out.println(sendChat);
+		}
+		
+		if (!gameUpdate.equals(oldData[4]))
+		{
+			oldData[4] = gameUpdate;
+			out.println(gameUpdate);
 		}
 		
 		String rot = "prot " + GameRunner.camera.yaw() + " " + GameRunner.camera.pitch();
@@ -512,6 +533,24 @@ public class MultiPlayer {
 					b.render();
 				}
 			}
+		}
+	}
+	
+	public void win()
+	{
+		if (!GameRunner.GO && (isHost || isClient))
+		{
+			gameUpdate = "gu win";
+			addToChat("You Beat The Other Player!");
+		}
+	}
+	
+	public void lose()
+	{
+		if (!GameRunner.GO && (isHost || isClient))
+		{
+			gameUpdate = "gu lose";
+			addToChat("You Blew Up!");
 		}
 	}
 }
